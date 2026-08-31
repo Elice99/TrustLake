@@ -1,0 +1,21 @@
+# Secrets
+.env
+.env.local
+!.env.example
+
+# Node
+node_modules/
+.next/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
