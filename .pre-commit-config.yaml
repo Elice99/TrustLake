@@ -1,0 +1,59 @@
+# Requires each app's dependencies to already be installed locally:
+#   apps/api: python -m venv .venv && source .venv/Scripts/activate (or
+#             .venv/bin/activate on Mac/Linux) && pip install -r
+#             requirements.txt -r requirements-dev.txt
+#   apps/web: npm install
+#
+# The Python hooks activate apps/api/.venv themselves inside the hook
+# command — they do NOT depend on your shell already having the venv
+# active when you run `git commit`. Tries the Windows venv path first,
+# falls back to the Mac/Linux path, so this works on either without
+# editing it per-OS.
+#
+# Hooks are scoped by file path so a Python-only change doesn't trigger
+# npm/eslint, and vice versa.
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-api
+        name: ruff (apps/api)
+        entry: bash -c 'source apps/api/.venv/Scripts/activate 2>/dev/null || source apps/api/.venv/bin/activate; cd apps/api && ruff check .'
+        language: system
+        files: ^apps/api/.*\.py$
+        pass_filenames: false
+
+      - id: black-api
+        name: black --check (apps/api)
+        entry: bash -c 'source apps/api/.venv/Scripts/activate 2>/dev/null || source apps/api/.venv/bin/activate; cd apps/api && black --check .'
+        language: system
+        files: ^apps/api/.*\.py$
+        pass_filenames: false
+
+      - id: mypy-api
+        name: mypy (apps/api)
+        entry: bash -c 'source apps/api/.venv/Scripts/activate 2>/dev/null || source apps/api/.venv/bin/activate; cd apps/api && mypy app'
+        language: system
+        files: ^apps/api/.*\.py$
+        pass_filenames: false
+
+      - id: eslint-web
+        name: eslint (apps/web)
+        entry: bash -c 'cd apps/web && npm run lint'
+        language: system
+        files: ^apps/web/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: typecheck-web
+        name: tsc --noEmit (apps/web)
+        entry: bash -c 'cd apps/web && npm run typecheck'
+        language: system
+        files: ^apps/web/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: prettier-web
+        name: prettier --check (apps/web)
+        entry: bash -c 'cd apps/web && npm run format:check'
+        language: system
+        files: ^apps/web/.*\.(ts|tsx|js|jsx|json|css|md)$
+        pass_filenames: false

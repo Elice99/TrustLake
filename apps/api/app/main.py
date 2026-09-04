@@ -7,11 +7,27 @@ starts in Stage 2 per the build roadmap. Do not add routes here beyond
 this placeholder without checking which stage they belong to.
 """
 
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.core.config import settings
 
-app = FastAPI(title="TrustLake API", version="0.0.0")
+logger = logging.getLogger("trustlake.api")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Confirms required env vars loaded successfully (fail-fast already
+    happened at import time in app.core.config — this just makes that
+    visible in the logs, and gives `settings` a real use)."""
+    logger.info("Config loaded. Target database: %s", settings.postgres_db)
+    yield
+
+
+app = FastAPI(title="TrustLake API", version="0.0.0", lifespan=lifespan)
 
 
 @app.get("/")

@@ -7,7 +7,9 @@ export const metadata: Metadata = {
     "TrustLake — a data professional's workspace, from raw data to trusted analysis and machine-learning predictions.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col font-sans">{children}</body>

@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+# Sensible baseline for a FastAPI/SQLAlchemy project: pyflakes, pycodestyle,
+# import sorting, and a few correctness/bug-risk categories. Not the full
+# "select everything" ruleset — that produces noise disproportionate to
+# value at this stage. Can be widened later once the codebase is bigger.
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+# "Strict-ish" per the roadmap, not full --strict: the individual flags
+# below catch the most common real bugs (untyped defs, implicit Optional,
+# unreachable code) without the friction of --strict's full flag set,
+# which tends to fight FastAPI's decorator-heavy patterns early on.
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+strict_equality = true
