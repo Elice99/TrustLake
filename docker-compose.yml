@@ -1,7 +1,7 @@
 # TrustLake — local development environment.
 #
-# Requires a .env file at the repo root (see .env.example — created in the
-# next build step). This file will not run correctly until that exists.
+# Requires a .env file at the repo root (copy .env.example and fill in
+# real values).
 #
 # No top-level `version:` key — obsolete in current Docker Compose and
 # ignored with a warning if present.
@@ -15,7 +15,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      # Host-side 5434, not 5432 or 5433 — avoids colliding with (a) a
+      # locally installed Postgres running as a Windows service on 5432,
+      # and (b) another local project's Postgres container also mapped
+      # to 5433. Container-to-container traffic (api -> postgres) is
+      # unaffected: it uses the Docker network's internal 5432, only
+      # the host-facing mapping changes. Only matters if you're
+      # connecting from the host itself (e.g. running pytest directly
+      # on Windows, or psql from a host terminal).
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,6 +36,11 @@ services:
     build:
       context: ./apps/api
     restart: unless-stopped
+    init: true  # Runs a lightweight init (tini) as PID 1 inside the
+    # container, so orphaned/zombie child processes (e.g. from
+    # uvicorn --reload's file-watcher subprocess) get properly reaped
+    # instead of becoming unkillable — this is what Docker's own error
+    # message recommends when a container can't be stopped normally.
     env_file:
       - .env
     ports:
@@ -40,14 +53,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # Note: the Stage 0 API stub does not connect to Postgres yet — this
-    # dependency is set up ahead of Stage 2's real DB connection, per the
-    # roadmap. It's inert right now, not exercised by any code.
+    # As of Stage 2 Day 1, the API genuinely connects to Postgres via
+    # the async SQLAlchemy engine (app/db/session.py) — this dependency
+    # is now load-bearing, not inert.
 
   web:
     build:
       context: ./apps/web
     restart: unless-stopped
+    init: true
     env_file:
       - .env
     ports:

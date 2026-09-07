@@ -19,12 +19,26 @@ jobs:
     defaults:
       run:
         working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: trustlake
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: trustlake
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U trustlake"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      # Dummy values, not real secrets — sufficient for the Stage 0 stub,
-      # which doesn't actually connect to a database yet. Fail-fast
-      # validation itself is exercised by tests/test_main.py, not by
-      # these values being real.
-      DATABASE_URL: postgresql://trustlake:test@localhost:5432/trustlake
+      # Real connection to the CI-only Postgres service above — not a
+      # secret, this only ever exists inside the CI run and is torn
+      # down after. "test" is a fine password here specifically because
+      # of that.
+      DATABASE_URL: postgresql+asyncpg://trustlake:test@localhost:5432/trustlake
       POSTGRES_USER: trustlake
       POSTGRES_PASSWORD: test
       POSTGRES_DB: trustlake

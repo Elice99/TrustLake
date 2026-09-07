@@ -27,3 +27,8 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 no_implicit_optional = true
 strict_equality = true
+
+[tool.pytest.ini_options]
+# auto mode: async def test_ functions run without needing an explicit
+# @pytest.mark.asyncio on every one of them.
+asyncio_mode = "auto"
