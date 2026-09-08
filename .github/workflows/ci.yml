@@ -57,7 +57,7 @@ jobs:
 
       - run: black --check .
 
-      - run: mypy app tests
+      - run: mypy app tests alembic
 
       - run: pytest -v
 
