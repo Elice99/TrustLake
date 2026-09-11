@@ -1,6 +1,11 @@
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+# Generated migration files follow Alembic's own template style (old-
+# style typing, no line-length limit) — not something we hand-author or
+# want to fight on every autogenerate. mypy still checks this directory;
+# only formatting/lint style is excluded here.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 # Sensible baseline for a FastAPI/SQLAlchemy project: pyflakes, pycodestyle,
@@ -12,6 +17,7 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.black]
 line-length = 88
 target-version = ["py312"]
+extend-exclude = "alembic/versions"
 
 [tool.mypy]
 python_version = "3.12"
@@ -32,3 +38,13 @@ strict_equality = true
 # auto mode: async def test_ functions run without needing an explicit
 # @pytest.mark.asyncio on every one of them.
 asyncio_mode = "auto"
+# app.db.session.engine is a module-level singleton (correct for a real
+# running app — one process, one event loop, for its whole life). By
+# default pytest-asyncio gives each test function its own event loop,
+# which breaks that assumption: a pooled connection opened under one
+# test's loop can't be reused by the next test's (different) loop,
+# and asyncpg correctly raises "attached to a different loop". Session
+# scope makes all tests share one loop, matching what the engine
+# actually expects.
+asyncio_default_test_loop_scope = "session"
+asyncio_default_fixture_loop_scope = "session"

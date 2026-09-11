@@ -1,6 +1,13 @@
-# Import every model module here as they're added (starting Day 3).
-# SQLAlchemy's declarative registry only knows about a model once its
-# module has been imported somewhere — alembic/env.py imports
-# app.db.base.Base, but that alone won't pull in models defined in
-# separate files unless something imports those files too. This module
-# is that "something": e.g. `from app.models.user import User`.
+"""
+Every model must be imported here (not just defined in its own file).
+SQLAlchemy's declarative registry only knows about a model once its
+module has been imported somewhere — Alembic's autogenerate walks
+Base.metadata, which is only populated by models that have actually
+been imported into the running process.
+"""
+
+from app.models.audit_event import AuditEvent
+from app.models.dataset import Dataset
+from app.models.user import User
+
+__all__ = ["User", "Dataset", "AuditEvent"]
