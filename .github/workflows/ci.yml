@@ -59,6 +59,8 @@ jobs:
 
       - run: mypy app tests alembic
 
+      - run: alembic upgrade head
+
       - run: pytest -v
 
   web:
