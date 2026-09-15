@@ -1,10 +1,9 @@
 """
-TrustLake API — Stage 0 placeholder.
+TrustLake API.
 
-This is intentionally minimal: a single route proving the FastAPI service
-boots and responds. Real business logic (auth, DB models, profiling, etc.)
-starts in Stage 2 per the build roadmap. Do not add routes here beyond
-this placeholder without checking which stage they belong to.
+Real routes start landing here from Stage 2 Day 4 onward (auth first).
+The root "/" route remains as a basic liveness check; a proper
+DB-aware /health endpoint is a later Stage 2 item, not built yet.
 """
 
 import logging
@@ -13,6 +12,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.v1.routes.auth import router as auth_router
 from app.core.config import settings
 
 logger = logging.getLogger("trustlake.api")
@@ -28,6 +28,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="TrustLake API", version="0.0.0", lifespan=lifespan)
+
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/")

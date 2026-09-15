@@ -34,7 +34,19 @@ async_session_factory = async_sessionmaker(
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
     """FastAPI dependency — yields a session scoped to a single request.
-    The session is always closed after the request, even if an
-    exception is raised partway through a route handler."""
+
+    Commits automatically if the route handler completes without
+    raising, rolls back if it raises. Without this, a route that
+    forgets to call session.commit() itself would silently discard its
+    changes on cleanup — SQLAlchemy's default behavior on a session
+    context exit is rollback, not commit. This also guarantees every
+    mutating route's changes and its audit_events row land in one
+    atomic transaction, per the architecture doc's requirement, without
+    every route having to remember to do this by hand."""
     async with async_session_factory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
