@@ -16,3 +16,5 @@ asyncpg==0.31.0
 alembic==1.19.2
 email-validator==2.3.0
 argon2-cffi==25.1.0
+pyjwt==2.14.0
+python-multipart==0.0.32

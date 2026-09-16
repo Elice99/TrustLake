@@ -6,11 +6,15 @@ Route handlers translate exceptions raised here into HTTP responses.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.models import AuditEvent, User
 
 
 class EmailAlreadyRegisteredError(Exception):
+    pass
+
+
+class InvalidCredentialsError(Exception):
     pass
 
 
@@ -42,5 +46,21 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
             event_metadata={"email": email},
         )
     )
+
+    return user
+
+
+async def authenticate_user(session: AsyncSession, email: str, password: str) -> User:
+    """Raises InvalidCredentialsError for both "no such email" and
+    "wrong password" — deliberately the same error either way. If a
+    wrong email got a different error than a wrong password, an
+    attacker could use that difference to discover which emails are
+    registered at all (a real, well-known vulnerability class called
+    user enumeration), even without ever guessing a correct password."""
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if user is None or not verify_password(password, user.hashed_password):
+        raise InvalidCredentialsError("Incorrect email or password")
 
     return user

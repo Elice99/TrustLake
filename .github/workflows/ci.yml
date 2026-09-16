@@ -42,6 +42,10 @@ jobs:
       POSTGRES_USER: trustlake
       POSTGRES_PASSWORD: test
       POSTGRES_DB: trustlake
+      # Added Day 5 — Settings now requires this with no default.
+      # A throwaway value is fine: this only exists inside the CI run
+      # and never needs to match any real deployed secret.
+      JWT_SECRET_KEY: ci-only-throwaway-secret-never-used-for-anything-real
     steps:
       - uses: actions/checkout@v6
 
