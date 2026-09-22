@@ -89,7 +89,8 @@ async def test_login_nonexistent_email_returns_same_401_as_wrong_password() -> N
             data={"username": "nobody-registered@example.com", "password": "whatever"},
         )
         assert response.status_code == 401
-        assert response.json()["detail"] == "Incorrect email or password"
+        assert response.json()["error"]["message"] == "Incorrect email or password"
+        assert response.json()["error"]["code"] == "unauthorized"
 
 
 async def test_me_without_token_returns_401() -> None:
