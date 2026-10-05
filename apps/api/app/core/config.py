@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     # is to log in again. Acceptable for pre-MVP; revisit if/when this
     # moves toward handling real user sessions in production.
     jwt_expire_minutes: int = 30
+    # Object storage (MinIO locally, S3-compatible in production — per
+    # the architecture doc, swapping backends later should require
+    # zero app code changes, only these settings).
+    minio_root_user: str
+    minio_root_password: str
+    storage_endpoint_url: str
+    storage_bucket_name: str = "trustlake"
 
     @field_validator("database_url")
     @classmethod

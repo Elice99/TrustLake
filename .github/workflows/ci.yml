@@ -46,6 +46,14 @@ jobs:
       # A throwaway value is fine: this only exists inside the CI run
       # and never needs to match any real deployed secret.
       JWT_SECRET_KEY: ci-only-throwaway-secret-never-used-for-anything-real
+      # Added Day 7 — Settings requires these too now. No real MinIO
+      # service container needed here: tests/test_storage.py uses
+      # moto (an in-process mock of the real AWS S3 API), not a live
+      # server, so these values just need to exist, not actually work.
+      MINIO_ROOT_USER: ci-only-throwaway-user
+      MINIO_ROOT_PASSWORD: ci-only-throwaway-password
+      STORAGE_ENDPOINT_URL: http://localhost:9000
+      STORAGE_BUCKET_NAME: trustlake-ci
     steps:
       - uses: actions/checkout@v6
 

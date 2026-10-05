@@ -6,7 +6,7 @@ FastAPI's defaults are inconsistent: HTTPException gives
 {"detail": "..."}, validation errors give a different shape again,
 and anything unhandled leaks a raw "Internal Server Error" with no
 useful information — which is exactly what happened when
-python-multipart was missing (Day 5) and when the users table didn't
+python-multipart was missing and when the users table didn't
 exist yet (the empty-DB incident) — both surfaced as an opaque 500
 with nothing to go on.
 """

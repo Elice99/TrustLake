@@ -122,3 +122,15 @@ A plain-language record of what's been built, why, and the concepts behind each 
 2. **Registering an error handler for the wrong exception class silently misses cases.** FastAPI's own internal machinery (e.g., what happens automatically when a URL doesn't match any route) raises Starlette's *base* `HTTPException` class, not FastAPI's own (slightly extended) version of it. A handler registered for the FastAPI version doesn't catch the Starlette base version — Python's exception matching checks whether the raised exception is a subclass of what you registered, not the other way around. Fixed by registering against the base class, which correctly catches both.
 
 **A loose end worth mentioning honestly:** partway through this day, an unexplained, never-committed file (`app/core/errors.py`) turned up in the working environment — functionally very similar to what was being built, but with unclear origin. It was never part of your actual repository (confirmed via `git log`, which showed zero history for it) and was deleted rather than merged in, since its provenance couldn't be verified. Mentioned here for transparency, not because it affected anything you have.
+
+---
+
+### Day 7: object storage abstraction (MinIO + `StorageProvider`)
+
+**What we built:** a `StorageProvider` interface (`app/services/storage.py`) with a real MinIO-backed implementation, plus a MinIO service in `docker-compose.yml`.
+
+**Concept: why an abstraction instead of calling MinIO directly.** Application code never imports MinIO-specific anything — it only knows about the `StorageProvider` interface (`upload`, `download`, `delete`, `exists`). The concrete implementation (`S3StorageProvider`) happens to use `boto3`, the real AWS SDK, because MinIO deliberately speaks the same API as real AWS S3. That's the whole point: moving from MinIO (local dev) to real AWS S3 (production, later) should mean changing environment variables only — zero application code changes — exactly per your architecture doc.
+
+**A real efficiency bug caught before it mattered:** the first version constructed a brand new MinIO connection and made a real network call on *every single use*, instead of once. Fixed by caching it as a singleton, the same pattern already used for the database engine.
+
+**Testing without a real MinIO available in this environment:** rather than skip real verification, storage tests use `moto` — a library that intercepts the exact same `boto3` calls a real AWS SDK user would make and answers them in-process, without any real network or server. This isn't a lesser test — it exercises the actual code path (bucket creation, upload, download, missing-key handling) for real, just without needing a live server. Your real Docker `minio` container is what proves the whole thing end-to-end.

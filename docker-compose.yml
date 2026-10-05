@@ -32,6 +32,24 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: pgsty/silo:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"  # S3-compatible API
+      - "9001:9001"  # Web console
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ./apps/api
@@ -52,6 +70,8 @@ services:
       - ./apps/api:/app
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     # As of Stage 2 Day 1, the API genuinely connects to Postgres via
     # the async SQLAlchemy engine (app/db/session.py) — this dependency
@@ -79,3 +99,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:
