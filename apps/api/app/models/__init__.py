@@ -8,6 +8,8 @@ been imported into the running process.
 
 from app.models.audit_event import AuditEvent
 from app.models.dataset import Dataset
+from app.models.dataset_version import DatasetVersion
+from app.models.profile import Profile
 from app.models.user import User
 
-__all__ = ["User", "Dataset", "AuditEvent"]
+__all__ = ["User", "Dataset", "DatasetVersion", "Profile", "AuditEvent"]

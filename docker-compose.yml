@@ -33,6 +33,11 @@ services:
       retries: 5
 
   minio:
+    # pgsty/silo, not the official minio/minio — MinIO archived its
+    # open-source project and pulled its official Docker Hub images in
+    # 2026. This is a community-maintained fork (renamed from an
+    # earlier pgsty/minio) with the same S3 API, env vars, and startup
+    # command. See docs/BUILD_LOG.md's Day 7 entry for the full story.
     image: pgsty/silo:latest
     restart: unless-stopped
     environment:

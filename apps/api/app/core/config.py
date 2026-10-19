@@ -9,7 +9,7 @@ starting up with a missing/blank secret. This is the Stage 0 requirement:
 missing — never silently defaults a secret."
 """
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     minio_root_password: str
     storage_endpoint_url: str
     storage_bucket_name: str = "trustlake"
+    # Largest CSV accepted by POST /datasets, in megabytes. Enforced on
+    # the real received bytes, server-side. Optional: defaults to 50.
+    max_upload_size_mb: int = Field(default=50, ge=1)
 
     @field_validator("database_url")
     @classmethod

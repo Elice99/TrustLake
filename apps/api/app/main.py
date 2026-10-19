@@ -13,6 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.routes.auth import router as auth_router
+from app.api.v1.routes.datasets import router as datasets_router
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
 from app.db.session import get_db
@@ -34,6 +35,7 @@ app = FastAPI(title="TrustLake API", version="0.0.0", lifespan=lifespan)
 register_exception_handlers(app)
 
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(datasets_router, prefix="/api/v1")
 
 
 @app.get("/")

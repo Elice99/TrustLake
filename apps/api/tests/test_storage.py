@@ -64,3 +64,25 @@ async def test_bucket_is_auto_created_on_first_use() -> None:
         )
         await provider.upload("proof.txt", b"it worked")
         assert await provider.download("proof.txt") == b"it worked"
+
+
+async def test_upload_fileobj_streams_and_roundtrips(provider) -> None:  # type: ignore[no-untyped-def]
+    import io
+
+    payload = b"x" * (9 * 1024 * 1024)  # above boto3's 8 MB multipart threshold
+    await provider.upload_fileobj("big/stream.bin", io.BytesIO(payload))
+    assert await provider.download("big/stream.bin") == payload
+
+
+async def test_unreachable_storage_raises_storage_error() -> None:
+    from app.services.storage import StorageError
+
+    # Port 1 refuses connections immediately; this must surface as our
+    # StorageError (which becomes a clean 503), never a raw botocore error.
+    with pytest.raises(StorageError):
+        S3StorageProvider(
+            endpoint_url="http://127.0.0.1:1",
+            access_key="k",
+            secret_key="s",
+            bucket_name="nope",
+        )

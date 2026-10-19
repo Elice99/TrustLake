@@ -19,3 +19,7 @@ argon2-cffi==25.1.0
 pyjwt==2.14.0
 python-multipart==0.0.32
 boto3==1.43.99
+# Pinned exactly (like pydantic above) so pip never has to search a
+# version range. pandas does the CSV parsing and profiling.
+numpy==2.5.3
+pandas==3.0.6

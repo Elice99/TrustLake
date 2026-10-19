@@ -19,6 +19,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 
+from app.services.storage import StorageError
+
 logger = logging.getLogger("trustlake.api")
 
 
@@ -26,8 +28,16 @@ def _envelope(code: str, message: str, details: object = None) -> dict[str, obje
     return {"error": {"code": code, "message": message, "details": details}}
 
 
+# Python's own phrase text for a few status codes has changed between
+# versions, which would silently change the "code" clients see. Pin the
+# ones we emit so the API contract stays stable everywhere.
+_CODE_OVERRIDES = {413: "payload_too_large"}
+
+
 def _slug(status_code: int) -> str:
     """401 -> "unauthorized", 404 -> "not_found", etc."""
+    if status_code in _CODE_OVERRIDES:
+        return _CODE_OVERRIDES[status_code]
     try:
         return HTTPStatus(status_code).phrase.lower().replace(" ", "_")
     except ValueError:
@@ -61,6 +71,19 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content=_envelope(
                 "validation_error", "Request validation failed", exc.errors()
+            ),
+        )
+
+    @app.exception_handler(StorageError)
+    async def handle_storage_error(request: Request, exc: StorageError) -> JSONResponse:
+        """Object storage is down or misconfigured. A dependency being
+        unavailable is a 503, not a generic 500. The detail is logged
+        server-side; the client only gets a generic message."""
+        logger.error("Storage failure on %s %s: %s", request.method, request.url, exc)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content=_envelope(
+                "storage_unavailable", "Object storage is currently unavailable"
             ),
         )
 
